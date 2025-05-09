@@ -2,6 +2,11 @@
 
 **svg-power-opt** is a powerful SVG optimizer that ensures minimal file size without compromising visual quality. It wraps [SVGO](https://github.com/svg/svgo) with a carefully curated set of plugins and provides both a CLI and programmatic API.
 
+
+```bash
+node bin/cli.js icons/**/*.svg --out optimized/ --aggressive
+```
+
 ---
 
 ## ✨ Features
