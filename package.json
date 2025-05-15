@@ -1,6 +1,6 @@
 {
   "name": "svg-power-opt",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Powerful SVG optimizer with zero quality loss",
   "main": "lib/index.js",
   "type": "module",
@@ -10,8 +10,7 @@
   "scripts": {
     "start": "node bin/cli.js",
     "optimize": "node bin/cli.js icons/**/*.svg --out optimized/",
-      "release": "node release/publish.js"
-
+    "release": "node release/publish.js"
   },
   "keywords": [
     "svg",
