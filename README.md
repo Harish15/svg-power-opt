@@ -88,7 +88,6 @@ For each file, `svg-power-opt` shows:
 | `exportPNGThumbnail(input, outputPath, options)` | Converts an SVG (file path or buffer) to PNG thumbnail | `input` (string \| Buffer): SVG file path or data buffer<br>`outputPath` (string): PNG output path<br>`options` (object): PNG export settings (width, height, density, quality) | Promise resolving when PNG file is saved                   |
 | `validateSVG(svgString)`                         | Validates if the string is a well-formed SVG           | `svgString` (string): raw SVG content                                                                                                                                           | Boolean `true` if valid, `false` if invalid                |
 
-
 ---
 
 ## ⚙️ Configuration Options
@@ -130,11 +129,7 @@ const run = async () => {
 
 run();
 
-//execute file as
-
-node example.js
-
-/**************************************************************************************************/
+// Full API usage example:
 
 import {
   optimizeSVG,
@@ -145,13 +140,14 @@ import {
   exportPNGThumbnail,
   validateSVG,
 } from "svg-power-opt";
+import fs from "fs";
 
 // Optimize from file
 const optimized = await optimizeSVGFromFile("logo.svg", { aggressive: true });
 console.log(optimized);
 
 // Optimize from string
-const rawSvg = await fs.readFile("./logo.svg", "utf-8");
+const rawSvg = await fs.promises.readFile("./logo.svg", "utf-8");
 const result = optimizeSVG(rawSvg, {
   aggressive: true,
   preserveViewBox: false,
