@@ -1,7 +1,15 @@
 {
   "name": "svg-power-opt",
   "version": "1.2.1",
-  "description": "Powerful SVG optimizer with zero quality loss",
+  "description": "Powerful SVG optimizer with zero quality loss and PNG export.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Harish15/svg-power-opt.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Harish15/svg-power-opt/issues"
+  },
+  "homepage": "https://github.com/Harish15/svg-power-opt#readme",
   "main": "lib/index.js",
   "type": "module",
   "bin": {
@@ -20,9 +28,17 @@
     "optimizer",
     "svgopt",
     "cli",
-    "image"
+    "image",
+    "svg optimization",
+    "svg compressor",
+    "svgo",
+    "png export",
+    "image optimization",
+    "cli tool",
+    "webpack",
+    "graphics"
   ],
-  "author": "Your Name",
+  "author": "Harish Shinde",
   "license": "MIT",
   "dependencies": {
     "chalk": "^5.3.0",
