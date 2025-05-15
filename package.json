@@ -9,7 +9,9 @@
   },
   "scripts": {
     "start": "node bin/cli.js",
-    "optimize": "node bin/cli.js icons/**/*.svg --out optimized/"
+    "optimize": "node bin/cli.js icons/**/*.svg --out optimized/",
+      "release": "node release/publish.js"
+
   },
   "keywords": [
     "svg",
