@@ -138,14 +138,3 @@ console.log(result.data);
 MIT © 2025
 
 ---
-
-## 🙌 Contributing
-
-Pull requests welcome! If you'd like to suggest or implement improvements like:
-
-- Web UI
-- Image diffing (pixel-by-pixel)
-- SVGO plugin inspector
-- Preview thumbnails in terminal
-
-...feel free to open an issue or PR!
