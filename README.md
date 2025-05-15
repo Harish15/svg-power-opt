@@ -1,7 +1,7 @@
 
 # svg-power-opt
 
-**svg-power-opt** is a powerful and extensible SVG optimizer that reduces file size while preserving visual quality. It wraps [SVGO](https://github.com/svg/svgo) with a curated plugin set, adds CLI previews, reporting, config support, and more.
+**svg-power-opt** is a powerful and extensible SVG optimizer that reduces file size while preserving visual quality. It wraps [SVGO](https://github.com/svg/svgo) with a curated plugin set, adds CLI reporting, config support, and more.
 
 ---
 
@@ -10,7 +10,6 @@
 - 🔧 **Safe default optimizations** (zero visual loss)
 - ⚡ **Aggressive mode** for maximum compression
 - 📁 Supports **recursive folders**, glob patterns
-- 🖼️ Generates **HTML preview reports**
 - 📊 **Before/after size reporting** per file
 - 🔍 Warns on excessive reductions (>10%)
 - 🧾 Configurable via `svg-power-opt.config.js`
@@ -44,14 +43,12 @@ svg-power-opt <input> [options]
 ### Options:
 - `-o, --out <dir>`: Output directory (default: `optimized`)
 - `--aggressive`: Enable aggressive mode (default: `false`)
-- `--preview`: Generate HTML preview report
 - `--config <file>`: Use a custom config file
 
 ### Example:
 
 ```bash
 svg-power-opt icons/**/*.svg --out optimized/
-svg-power-opt logo.svg --aggressive --preview
 ```
 
 ---
@@ -77,20 +74,6 @@ Then run without passing options explicitly:
 ```bash
 svg-power-opt icons/**/*.svg
 ```
-
----
-
-## 🖼️ Preview Report
-
-If you enable `--preview`, it will generate a `preview.html` in your output folder with before/after comparisons:
-
-```
-📁 optimized/preview.html
-
-[ Original SVG ]      →      [ Optimized SVG ]
-```
-
-Use it to validate visual quality quickly.
 
 ---
 
