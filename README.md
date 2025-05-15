@@ -1,6 +1,7 @@
 # svg-power-opt
 
-**svg-power-opt** is a powerful and extensible SVG optimizer that reduces file size while preserving visual quality. It wraps [SVGO](https://github.com/svg/svgo) with a curated plugin set, adds CLI reporting, and offers full programmatic and Webpack integration.
+**svg-power-opt** is a powerful and extensible SVG optimizer that compresses SVG files without sacrificing visual quality. It wraps [SVGO](https://github.com/svg/svgo) with a curated set of safe plugins, provides advanced CLI reporting, supports aggressive optimization modes, allows custom plugin configuration, and can export high-quality PNG thumbnails using [sharp](https://www.npmjs.com/package/sharp).
+The tool supports both programmatic usage and Webpack integration — making it suitable for build pipelines, design systems, and automation tasks.
 
 ---
 
