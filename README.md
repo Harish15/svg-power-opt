@@ -1,7 +1,6 @@
-
 # svg-power-opt
 
-**svg-power-opt** is a powerful and extensible SVG optimizer that reduces file size while preserving visual quality. It wraps [SVGO](https://github.com/svg/svgo) with a curated plugin set, adds CLI reporting, and programmatic support.
+**svg-power-opt** is a powerful and extensible SVG optimizer that reduces file size while preserving visual quality. It wraps [SVGO](https://github.com/svg/svgo) with a curated plugin set, adds CLI reporting, and offers full programmatic and Webpack integration.
 
 ---
 
@@ -11,9 +10,12 @@
 - ⚡ **Aggressive mode** for maximum compression
 - 📁 Supports **recursive folders** and glob patterns
 - 📊 **Before/after size reporting** per file
-- 🔍 Warns on excessive reductions (>10%)
-- ✅ Usable from **CLI or Node.js API**
-- 📦 Supports **buffers, strings, and file input**
+- ⚠️ Warns on excessive reductions (>10%)
+- ✅ Usable from **CLI, Node.js API, or Webpack**
+- 📦 Handles **buffers, streams, files, and URLs**
+- 🖼️ Optional **PNG thumbnail export**
+- 🔌 Supports **custom SVGO plugins**
+- 🔄 Configurable **concurrency for bulk ops**
 
 ---
 
@@ -43,10 +45,15 @@ svg-power-opt <input> [options]
 ### Options:
 - `-o, --out <dir>`: Output directory (default: `optimized`)
 - `--aggressive`: Enable aggressive mode (default: `false`)
+- `--dry-run`: Preview changes without writing files
+- `--export-png`: Also export PNG thumbnail (requires sharp)
+- `--concurrency <number>`: Number of files to process in parallel (default: CPU count)
+- `--plugin <plugin>`: Add a custom SVGO plugin (JSON string)
 ### Example:
 
 ```bash
 svg-power-opt icons/**/*.svg --out optimized/
+svg-power-opt icons/**/*.svg --aggressive --export-png --out dist/icons
 ```
 
 ---
@@ -73,21 +80,34 @@ import {
   optimizeSVG,
   optimizeSVGFromFile,
   optimizeSVGFromBuffer,
+  optimizeSVGFromURL,
+  optimizeSVGStream,
+  exportPNGThumbnail,
+  validateSVG,
 } from 'svg-power-opt';
 
-// From file
+// Optimize from file
 const optimized = await optimizeSVGFromFile('logo.svg', { aggressive: true });
 console.log(optimized);
 
-// From string
+// Optimize from string
 const rawSVG = '<svg>...</svg>';
-const result = optimizeSVG(rawSVG, { aggressive: false });
+const result = optimizeSVG(rawSVG);
 console.log(result.data);
 
-// From buffer (e.g., file upload, S3, etc.)
+// Optimize from buffer
 const buffer = fs.readFileSync('logo.svg');
-const resultFromBuffer = optimizeSVGFromBuffer(buffer, { aggressive: true });
-console.log(resultFromBuffer.data);
+const resultFromBuffer = optimizeSVGFromBuffer(buffer);
+console.log(resultFromBuffer);
+
+// Optimize from URL
+const optimizedFromURL = await optimizeSVGFromURL('https://example.com/image.svg');
+
+// Optimize from readable stream (e.g., upload)
+const optimizedFromStream = await optimizeSVGStream(req);
+
+// Export PNG thumbnail
+await exportPNGThumbnail(rawSVG, 'output/preview.png');
 ```
 
 ---

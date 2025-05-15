@@ -4,6 +4,7 @@ node_modules/
 # images
 icons/
 optimized/
+dist/
 
 # Logs
 logs/
