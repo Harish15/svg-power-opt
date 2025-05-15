@@ -5,7 +5,7 @@ import fg from "fast-glob";
 import fs from "fs-extra";
 import path from "path";
 import { optimizeSVGFromFile } from "../lib/index.js";
-import { statSync } from 'fs';
+import { statSync } from "fs";
 
 function isDirectory(pathStr) {
   try {
@@ -28,12 +28,11 @@ program
 
     if (isDirectory(input)) {
       // Recursively get all .svg files in the directory
-      files = await fg(['**/*.svg'], { cwd: input, absolute: true });
+      files = await fg(["**/*.svg"], { cwd: input, absolute: true });
     } else {
       // Handle glob patterns or single files
       files = await fg([input], { absolute: true });
     }
-
 
     await fs.ensureDir(options.out);
 
@@ -56,11 +55,11 @@ program
 
       console.log(
         `${chalk.green("✔ Optimized:")} ${file} → ${outPath} ` +
-        `${chalk.gray(
-          `(${(originalSize / 1024).toFixed(1)}KB → ${(
-            optimizedSize / 1024
-          ).toFixed(1)}KB, ↓${percentReduced}%)`
-        )}`
+          `${chalk.gray(
+            `(${(originalSize / 1024).toFixed(1)}KB → ${(
+              optimizedSize / 1024
+            ).toFixed(1)}KB, ↓${percentReduced}%)`
+          )}`
       );
 
       if (options.aggressive && percentReduced > 10) {

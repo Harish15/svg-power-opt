@@ -1,7 +1,7 @@
 
 # svg-power-opt
 
-**svg-power-opt** is a powerful and extensible SVG optimizer that reduces file size while preserving visual quality. It wraps [SVGO](https://github.com/svg/svgo) with a curated plugin set, adds CLI reporting, config support, and more.
+**svg-power-opt** is a powerful and extensible SVG optimizer that reduces file size while preserving visual quality. It wraps [SVGO](https://github.com/svg/svgo) with a curated plugin set, adds CLI reporting, and programmatic support.
 
 ---
 
@@ -9,11 +9,11 @@
 
 - 🔧 **Safe default optimizations** (zero visual loss)
 - ⚡ **Aggressive mode** for maximum compression
-- 📁 Supports **recursive folders**, glob patterns
+- 📁 Supports **recursive folders** and glob patterns
 - 📊 **Before/after size reporting** per file
 - 🔍 Warns on excessive reductions (>10%)
-- 🧾 Configurable via `svg-power-opt.config.js`
 - ✅ Usable from **CLI or Node.js API**
+- 📦 Supports **buffers, strings, and file input**
 
 ---
 
@@ -43,36 +43,10 @@ svg-power-opt <input> [options]
 ### Options:
 - `-o, --out <dir>`: Output directory (default: `optimized`)
 - `--aggressive`: Enable aggressive mode (default: `false`)
-- `--config <file>`: Use a custom config file
-
 ### Example:
 
 ```bash
 svg-power-opt icons/**/*.svg --out optimized/
-```
-
----
-
-## 🧾 Config File Support
-
-You can create a `svg-power-opt.config.js` file in your project:
-
-```js
-export default {
-  aggressive: true,
-  outputDir: 'dist/icons',
-  plugins: [
-    'cleanupAttrs',
-    'removeComments',
-    'removeUselessDefs',
-  ],
-};
-```
-
-Then run without passing options explicitly:
-
-```bash
-svg-power-opt icons/**/*.svg
 ```
 
 ---
@@ -95,7 +69,11 @@ For each file, `svg-power-opt` shows:
 ## 🧑‍💻 Programmatic Usage
 
 ```js
-import { optimizeSVG, optimizeSVGFromFile } from 'svg-power-opt';
+import {
+  optimizeSVG,
+  optimizeSVGFromFile,
+  optimizeSVGFromBuffer,
+} from 'svg-power-opt';
 
 // From file
 const optimized = await optimizeSVGFromFile('logo.svg', { aggressive: true });
@@ -105,6 +83,11 @@ console.log(optimized);
 const rawSVG = '<svg>...</svg>';
 const result = optimizeSVG(rawSVG, { aggressive: false });
 console.log(result.data);
+
+// From buffer (e.g., file upload, S3, etc.)
+const buffer = fs.readFileSync('logo.svg');
+const resultFromBuffer = optimizeSVGFromBuffer(buffer, { aggressive: true });
+console.log(resultFromBuffer.data);
 ```
 
 ---
