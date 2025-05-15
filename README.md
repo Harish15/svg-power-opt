@@ -1,20 +1,20 @@
+
 # svg-power-opt
 
-**svg-power-opt** is a powerful SVG optimizer that ensures minimal file size without compromising visual quality. It wraps [SVGO](https://github.com/svg/svgo) with a carefully curated set of plugins and provides both a CLI and programmatic API.
-
-
-```bash
-node bin/cli.js icons/**/*.svg --out optimized/ --aggressive
-```
+**svg-power-opt** is a powerful and extensible SVG optimizer that reduces file size while preserving visual quality. It wraps [SVGO](https://github.com/svg/svgo) with a curated plugin set, adds CLI previews, reporting, config support, and more.
 
 ---
 
 ## ✨ Features
 
-- 🔧 Safe default optimization (no visual loss)
-- ⚡ Optional aggressive mode for maximum reduction
-- 📁 Supports single files, folders, or glob patterns
-- 🧰 Easy to use via CLI or Node.js API
+- 🔧 **Safe default optimizations** (zero visual loss)
+- ⚡ **Aggressive mode** for maximum compression
+- 📁 Supports **recursive folders**, glob patterns
+- 🖼️ Generates **HTML preview reports**
+- 📊 **Before/after size reporting** per file
+- 🔍 Warns on excessive reductions (>10%)
+- 🧾 Configurable via `svg-power-opt.config.js`
+- ✅ Usable from **CLI or Node.js API**
 
 ---
 
@@ -24,12 +24,10 @@ node bin/cli.js icons/**/*.svg --out optimized/ --aggressive
 npm install -g svg-power-opt
 ```
 
-Or clone locally:
+Or use via NPX:
 
 ```bash
-git clone https://github.com/yourname/svg-power-opt.git
-cd svg-power-opt
-npm install
+npx svg-power-opt icons/*.svg
 ```
 
 ---
@@ -41,17 +39,72 @@ svg-power-opt <input> [options]
 ```
 
 ### Arguments:
-- `<input>`: File path or glob pattern (`icons/*.svg`)
+- `<input>`: File path or glob pattern (e.g., `icons/**/*.svg`)
 
 ### Options:
 - `-o, --out <dir>`: Output directory (default: `optimized`)
-- `--aggressive`: Enable aggressive optimization (default: `false`)
+- `--aggressive`: Enable aggressive mode (default: `false`)
+- `--preview`: Generate HTML preview report
+- `--config <file>`: Use a custom config file
 
 ### Example:
 
 ```bash
 svg-power-opt icons/**/*.svg --out optimized/
-svg-power-opt logo.svg --out optimized/ --aggressive
+svg-power-opt logo.svg --aggressive --preview
+```
+
+---
+
+## 🧾 Config File Support
+
+You can create a `svg-power-opt.config.js` file in your project:
+
+```js
+export default {
+  aggressive: true,
+  outputDir: 'dist/icons',
+  plugins: [
+    'cleanupAttrs',
+    'removeComments',
+    'removeUselessDefs',
+  ],
+};
+```
+
+Then run without passing options explicitly:
+
+```bash
+svg-power-opt icons/**/*.svg
+```
+
+---
+
+## 🖼️ Preview Report
+
+If you enable `--preview`, it will generate a `preview.html` in your output folder with before/after comparisons:
+
+```
+📁 optimized/preview.html
+
+[ Original SVG ]      →      [ Optimized SVG ]
+```
+
+Use it to validate visual quality quickly.
+
+---
+
+## 📊 CLI Reporting
+
+For each file, `svg-power-opt` shows:
+
+- Original size
+- Optimized size
+- Compression %
+- Warning if drop >10% in aggressive mode
+
+```
+✔ Optimized: icons/logo.svg → optimized/logo.svg (84.1KB → 66.7KB, ↓20.69%) ⚠️
 ```
 
 ---
@@ -59,7 +112,7 @@ svg-power-opt logo.svg --out optimized/ --aggressive
 ## 🧑‍💻 Programmatic Usage
 
 ```js
-const { optimizeSVG, optimizeSVGFromFile } = require('svg-power-opt');
+import { optimizeSVG, optimizeSVGFromFile } from 'svg-power-opt';
 
 // From file
 const optimized = await optimizeSVGFromFile('logo.svg', { aggressive: true });
@@ -75,11 +128,24 @@ console.log(result.data);
 
 ## ⚙️ Optimization Strategy
 
-- **Safe Mode**: Only essential cleanup and compression plugins.
-- **Aggressive Mode**: Adds more drastic optimization plugins like `sortAttrs`, `removeAttrs` (can remove unused data).
+- **Safe Mode**: Removes metadata, comments, hidden elements, etc.
+- **Aggressive Mode**: Also removes attributes, sorts keys, strips non-inheritable styles.
 
 ---
 
 ## 📄 License
 
-MIT © 2025 Your Name
+MIT © 2025
+
+---
+
+## 🙌 Contributing
+
+Pull requests welcome! If you'd like to suggest or implement improvements like:
+
+- Web UI
+- Image diffing (pixel-by-pixel)
+- SVGO plugin inspector
+- Preview thumbnails in terminal
+
+...feel free to open an issue or PR!
