@@ -56,8 +56,8 @@ svg-power-opt <input> [options]
 ### Example:
 
 ```bash
-svg-power-opt icons/**/*.svg --out optimized/
-svg-power-opt icons/**/*.svg --aggressive --export-png --out dist/icons
+npx svg-power-opt icons/**/*.svg --out optimized/
+npx svg-power-opt icons/**/*.svg --aggressive --export-png --out dist/icons
 ```
 
 ---
@@ -125,10 +125,15 @@ const run = async () => {
   const result = await optimizeSVGFromFile("icons/logo.svg", {
     aggressive: false,
   });
-  console.log(result.data);
+  // Write the optimized SVG to a new file
+  await fs.promises.writeFile("icons/logo.optimized.svg", result, "utf-8");
+  console.log("Optimized SVG saved to output/logo.optimized.svg");
 };
 
 run();
+
+//execute
+//node example.js
 
 // Full API usage example:
 
