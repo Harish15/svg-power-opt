@@ -11,6 +11,7 @@ import {
 } from "../lib/index.js"; // SVG optimization library functions
 import { statSync } from "fs"; // File system sync stat for checking file info
 import os from "os"; // OS utilities (e.g., CPU count)
+import zlib from "zlib"; // Decompress .svgz for accurate size reporting
 
 /**
  * Helper function to check if a given path is a directory.
@@ -74,9 +75,7 @@ program
     // Determine concurrency; ensure at least 1 to avoid zero concurrency
     const concurrency = options.concurrency > 0 ? options.concurrency : 1;
 
-    // Array to store results (currently unused but can be extended)
-    const results = [];
-    let active = 0; // Count of active concurrent tasks (optional)
+    const outcomes = [];
     let index = 0; // Current file index for concurrency control
 
     /**
@@ -99,16 +98,22 @@ program
           );
         }
 
-        // Read original file to get size info for reporting
-        const original = await fs.readFile(file, "utf-8");
-        const originalSize = Buffer.byteLength(original, "utf-8");
+        // Original markup size (decompressed UTF-8) so .svgz compares fairly to optimized SVG
+        let originalMarkup;
+        if (file.endsWith(".svgz")) {
+          const gzipped = await fs.readFile(file);
+          originalMarkup = zlib.gunzipSync(gzipped).toString("utf-8");
+        } else {
+          originalMarkup = await fs.readFile(file, "utf-8");
+        }
+        const originalSize = Buffer.byteLength(originalMarkup, "utf-8");
         const optimizedSize = Buffer.byteLength(optimizedSVG, "utf-8");
 
-        // Calculate percent size reduction
-        const percentReduced = (
-          ((originalSize - optimizedSize) / originalSize) *
-          100
-        ).toFixed(2);
+        const percentReducedNum =
+          originalSize > 0
+            ? ((originalSize - optimizedSize) / originalSize) * 100
+            : 0;
+        const percentReduced = percentReducedNum.toFixed(2);
 
         // Determine output file path (same filename inside output directory)
         const outPath = path.join(options.out, path.basename(file));
@@ -138,7 +143,7 @@ program
         );
 
         // Warn user if aggressive mode reduced size more than 10% to check visuals
-        if (options.aggressive && percentReduced > 10) {
+        if (options.aggressive && originalSize > 0 && percentReducedNum > 10) {
           console.warn(
             chalk.yellowBright(
               `⚠ Aggressive mode reduced more than 10% — please verify visual integrity of: ${file}`
@@ -163,7 +168,7 @@ program
       const promises = new Array(concurrency).fill(null).map(async () => {
         while (index < files.length) {
           const file = files[index++]; // Get next file to process
-          await processFile(file);
+          outcomes.push(await processFile(file));
         }
       });
       // Wait for all concurrent tasks to complete
@@ -172,6 +177,9 @@ program
 
     // Start the concurrent processing of files
     await runConcurrent();
+
+    const failed = outcomes.filter((o) => !o.success).length;
+    if (failed > 0) process.exit(1);
   });
 
 // Parse CLI arguments and execute

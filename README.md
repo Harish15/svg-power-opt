@@ -64,6 +64,8 @@ npx svg-power-opt icons/**/*.svg --aggressive --export-png --out dist/icons
 
 ## 📊 CLI Reporting
 
+If any input file fails to optimize, the process exits with code **1** (useful in CI).
+
 For each file, `svg-power-opt` shows:
 
 - Original size
@@ -82,11 +84,11 @@ For each file, `svg-power-opt` shows:
 | Function Name                                    | Description                                            | Parameters                                                                                                                                                                      | Returns / Output                                           |
 | ------------------------------------------------ | ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
 | `optimizeSVG(svgString, options)`                | Optimizes an SVG string with given options             | `svgString` (string): raw SVG content<br>`options` (object): optimization settings (see below)                                                                                  | Optimized SVG result object with `.data` property (string) |
-| `optimizeSVGFromFile(filePath, options)`         | Reads an SVG file, optimizes it, returns result        | `filePath` (string): path to SVG file<br>`options` (object): optimization settings                                                                                              | Promise resolving to optimized SVG result object           |
-| `optimizeSVGFromBuffer(buffer, options)`         | Optimizes SVG from a Buffer                            | `buffer` (Buffer): SVG data buffer<br>`options` (object): optimization settings                                                                                                 | Optimized SVG result object                                |
-| `optimizeSVGFromURL(url, options)`               | Downloads an SVG from a URL and optimizes it           | `url` (string): remote SVG URL<br>`options` (object): optimization settings                                                                                                     | Promise resolving to optimized SVG result object           |
-| `optimizeSVGStream(readableStream, options)`     | Optimizes SVG data from a readable stream              | `readableStream` (Readable): input stream<br>`options` (object): optimization settings                                                                                          | Promise resolving to optimized SVG result object           |
-| `exportPNGThumbnail(input, outputPath, options)` | Converts an SVG (file path or buffer) to PNG thumbnail | `input` (string \| Buffer): SVG file path or data buffer<br>`outputPath` (string): PNG output path<br>`options` (object): PNG export settings (width, height, density, quality) | Promise resolving when PNG file is saved                   |
+| `optimizeSVGFromFile(filePath, options)`         | Reads an SVG file, optimizes it, returns result        | `filePath` (string): path to SVG file<br>`options` (object): optimization settings                                                                                              | Promise resolving to optimized SVG **string** (`result.data`) |
+| `optimizeSVGFromBuffer(buffer, options)`         | Optimizes SVG from a Buffer                            | `buffer` (Buffer): SVG data buffer<br>`options` (object): optimization settings                                                                                                 | Optimized SVG **string** (`result.data`)                     |
+| `optimizeSVGFromURL(url, options)`               | Downloads an SVG from a URL and optimizes it           | `url` (string): remote SVG URL<br>`options` (object): optimization settings                                                                                                     | Promise resolving to optimized SVG **string** (uses global `fetch`, Node 18+) |
+| `optimizeSVGStream(readableStream, options)`     | Optimizes SVG data from a readable stream              | `readableStream` (Readable): input stream<br>`options` (object): optimization settings                                                                                          | Promise resolving to optimized SVG **string**              |
+| `exportPNGThumbnail(input, outputPath, options)` | Converts an SVG file or inline SVG markup to PNG       | `input` (string): SVG **file path** or raw markup string starting with `<svg`<br>`outputPath` (string): PNG output path<br>`options` (object): PNG export settings (width, height, density, quality) | Promise resolving when PNG file is saved                   |
 | `validateSVG(svgString)`                         | Validates if the string is a well-formed SVG           | `svgString` (string): raw SVG content                                                                                                                                           | Boolean `true` if valid, `false` if invalid                |
 
 ---
@@ -119,6 +121,7 @@ For each file, `svg-power-opt` shows:
 ```js
 // minimal working example
 // create example.js
+import fs from "fs";
 import { optimizeSVGFromFile } from "svg-power-opt";
 
 const run = async () => {

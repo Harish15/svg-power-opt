@@ -47,8 +47,5 @@
     "fs-extra": "^11.2.0",
     "sharp": "^0.32.6",
     "svgo": "^3.0.2"
-  },
-  "devDependencies": {
-    "node-fetch": "^3.3.2"
   }
 }
