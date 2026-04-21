@@ -15,6 +15,12 @@
   "bin": {
     "svg-power-opt": "bin/cli.js"
   },
+  "files": [
+    "bin/",
+    "lib/",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "start": "node bin/cli.js",
     "optimize": "node bin/cli.js icons/**/*.svg --out optimized/",
