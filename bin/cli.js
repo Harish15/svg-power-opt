@@ -8,10 +8,13 @@ import {
   optimizeSVGFromFile,
   exportPNGThumbnail,
   validateSVG,
+  WorkerPool,
 } from "../lib/index.js"; // SVG optimization library functions
 import { statSync } from "fs"; // File system sync stat for checking file info
 import os from "os"; // OS utilities (e.g., CPU count)
-import zlib from "zlib"; // Decompress .svgz for accurate size reporting
+import zlib from "zlib";
+import { promisify } from "util";
+const gunzipAsync = promisify(zlib.gunzip);
 
 /**
  * Helper function to check if a given path is a directory.
@@ -47,6 +50,16 @@ program
     "Number of parallel optimizations",
     parseInt,
     os.cpus().length // Default concurrency equals number of CPU cores
+  )
+  .option(
+    "--strict-validate",
+    "Run full SVGO re-parse to validate each optimized output (slower)",
+    false
+  )
+  .option(
+    "--workers [n]",
+    "Use worker_threads pool for true parallel optimization (default: CPU count)",
+    (val) => (val === undefined ? true : Number(val))
   )
   .option(
     "--plugin <plugin>",
@@ -85,29 +98,23 @@ program
      */
     async function processFile(file) {
       try {
-        // Optimize SVG with options from CLI flags (aggressive mode and plugins)
-        const optimizedSVG = await optimizeSVGFromFile(file, {
-          aggressive: options.aggressive,
-          plugins: options.plugin,
-        });
+        // Optimize SVG and get original/optimized sizes in a single pass; this
+        // avoids re-reading (and re-decompressing) the source file just to
+        // compute the original size for reporting.
+        const { data: optimizedSVG, originalSize, optimizedSize } =
+          await optimizeSVGFromFile(file, {
+            aggressive: options.aggressive,
+            plugins: options.plugin,
+            withSizes: true,
+          });
 
-        // Validate the optimized SVG to catch any potential issues
-        if (!validateSVG(optimizedSVG)) {
+        // Cheap structural validation of the optimized output. Strict SVGO
+        // re-parsing is opt-in via --strict-validate for users who need it.
+        if (!validateSVG(optimizedSVG, { strict: options.strictValidate })) {
           console.warn(
             chalk.red(`⚠ Warning: Optimized SVG invalid for file ${file}`)
           );
         }
-
-        // Original markup size (decompressed UTF-8) so .svgz compares fairly to optimized SVG
-        let originalMarkup;
-        if (file.endsWith(".svgz")) {
-          const gzipped = await fs.readFile(file);
-          originalMarkup = zlib.gunzipSync(gzipped).toString("utf-8");
-        } else {
-          originalMarkup = await fs.readFile(file, "utf-8");
-        }
-        const originalSize = Buffer.byteLength(originalMarkup, "utf-8");
-        const optimizedSize = Buffer.byteLength(optimizedSVG, "utf-8");
 
         const percentReducedNum =
           originalSize > 0
@@ -175,8 +182,101 @@ program
       await Promise.all(promises);
     }
 
-    // Start the concurrent processing of files
-    await runConcurrent();
+    // --workers enables a real thread pool. It offloads SVGO (CPU-bound and
+    // blocking) to worker_threads and handles all file I/O here on the main
+    // thread. For large batches this is the biggest win available.
+    async function runWithWorkers() {
+      // Default pool size: half of logical CPUs, capped to the batch size.
+      // Spinning up one worker per core is wasteful on small batches (worker
+      // startup on Windows is ~300-500ms each) and tends to overshoot the
+      // sweet spot on 8+ core machines according to the benchmark sweep.
+      const requested = typeof options.workers === "number" && options.workers > 0
+        ? options.workers
+        : Math.max(2, Math.floor(os.cpus().length / 2));
+      const size = Math.max(1, Math.min(requested, files.length));
+      const pool = new WorkerPool(size, {
+        aggressive: options.aggressive,
+      });
+      try {
+        let inflight = 0;
+        let done = 0;
+        let fileIdx = 0;
+        await new Promise((resolve, reject) => {
+          const kick = () => {
+            while (inflight < size && fileIdx < files.length) {
+              const file = files[fileIdx++];
+              inflight++;
+              (async () => {
+                try {
+                  let content;
+                  if (file.endsWith(".svgz")) {
+                    content = (await gunzipAsync(await fs.readFile(file))).toString("utf-8");
+                  } else {
+                    content = await fs.readFile(file, "utf-8");
+                  }
+                  const originalSize = Buffer.byteLength(content, "utf-8");
+                  const optimizedSVG = await pool.run(content, {
+                    aggressive: options.aggressive,
+                  });
+                  const optimizedSize = Buffer.byteLength(optimizedSVG, "utf-8");
+                  if (!validateSVG(optimizedSVG, { strict: options.strictValidate })) {
+                    console.warn(chalk.red(`⚠ Warning: Optimized SVG invalid for file ${file}`));
+                  }
+                  const percentReducedNum =
+                    originalSize > 0
+                      ? ((originalSize - optimizedSize) / originalSize) * 100
+                      : 0;
+                  const outPath = path.join(options.out, path.basename(file));
+                  if (!options.dryRun) {
+                    await fs.writeFile(outPath, optimizedSVG);
+                    if (options.exportPng) {
+                      const pngPath = outPath.replace(/\.(svg|svgz)$/i, ".png");
+                      await exportPNGThumbnail(optimizedSVG, pngPath);
+                    }
+                  }
+                  console.log(
+                    `${chalk.green("✔ Optimized:")} ${file} → ${
+                      options.dryRun ? "(dry-run, no write)" : outPath
+                    } ` +
+                      `${chalk.gray(
+                        `(${(originalSize / 1024).toFixed(1)}KB → ${(
+                          optimizedSize / 1024
+                        ).toFixed(1)}KB, ↓${percentReducedNum.toFixed(2)}%)`
+                      )}`
+                  );
+                  if (options.aggressive && percentReducedNum > 10) {
+                    console.warn(
+                      chalk.yellowBright(
+                        `⚠ Aggressive mode reduced more than 10% — please verify visual integrity of: ${file}`
+                      )
+                    );
+                  }
+                  outcomes.push({ file, success: true });
+                } catch (e) {
+                  console.error(chalk.red(`✖ Failed to optimize ${file}: ${e.message}`));
+                  outcomes.push({ file, success: false, error: e });
+                } finally {
+                  inflight--;
+                  done++;
+                  if (done === files.length) resolve();
+                  else kick();
+                }
+              })();
+            }
+          };
+          if (files.length === 0) resolve();
+          else kick();
+        });
+      } finally {
+        await pool.terminate();
+      }
+    }
+
+    if (options.workers) {
+      await runWithWorkers();
+    } else {
+      await runConcurrent();
+    }
 
     const failed = outcomes.filter((o) => !o.success).length;
     if (failed > 0) process.exit(1);

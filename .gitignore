@@ -40,3 +40,9 @@ package-lock.json
 
 # MacOS .DS_Store
 .DS_Store
+
+# Benchmark generated artifacts
+bench/corpus/
+bench/output/
+bench/verify/
+bench/results.json
