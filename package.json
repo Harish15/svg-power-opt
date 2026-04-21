@@ -1,6 +1,6 @@
 {
   "name": "svg-power-opt",
-  "version": "1.2.4",
+  "version": "1.2.5",
   "description": "Powerful SVG optimizer with zero quality loss and PNG export.",
   "repository": {
     "type": "git",
